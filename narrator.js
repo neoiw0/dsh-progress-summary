@@ -81,6 +81,7 @@ export function systemPrompt(lang) {
     '你是编码智能体的进度播报员。读者正在等结果，看不到模型的内部思考。',
     '根据"最近思考"，写一行中文进度说明：它想达成什么、现在走到哪一步。',
     '读者已经在工作步骤里看到了每次工具调用，所以不要复述工具名、命令、路径或文件名，只写目的和进展。',
+    '写给完全不懂技术的读者：用日常语言，不用行话；必须出现的技术名词要用括号简单解释一句。',
     '规则：一句话，尽量不超过 100 字；不要引号、Markdown、前缀或句末标点；不要与"上一条"雷同；信息不足时写得更概括。',
     '只输出这一行。',
   ].join('\n')
@@ -278,6 +279,9 @@ export class Narrator {
    */
   noteTool(name, args) {
     if (!this.active) return
+    // 补丁 P3：总开关。宿主插件把 globalThis.__dshNarratorOff 置 true 时，
+    // 这里直接返回——连模型请求都不发，零 token 消耗。
+    if (globalThis.__dshNarratorOff === true) return
     if (this.config.quickLines) {
       const quick = quickToolLine(name, args, this.config.lang, this.config.maxLineChars)
       if (quick !== '' && quick !== this.lastLine) {
@@ -340,7 +344,10 @@ export class Narrator {
     if (this.calls >= this.config.maxPerTurn) return
     // A tool-only boundary (no reasoning before the call) has nothing to
     // summarize; the transcript already shows the call itself.
-    const excerpt = tailText(this.buffer, this.config.excerptChars)
+    // 补丁 P2：把"上次总结到现在"的全部新增推理喂出去（上限 4000 字），
+    // 而不是只看最近 excerptChars 字，避免长间隔里漏掉前因。
+    const spanChars = Math.min(Math.max(this.config.excerptChars, this.dirty), 4000)
+    const excerpt = tailText(this.buffer, spanChars)
     if (excerpt === '') return
     this.inFlight = true
     this.calls += 1

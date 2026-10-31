@@ -147,7 +147,7 @@ export const Config = z.object({
   /** Reasoning effort for the auxiliary call. */
   effort: z.union(['off', 'low', 'high', 'max']).default('off').volatile(),
   /** Output cap for one line. */
-  maxTokens: z.number().min(16).max(256).step(1).default(96),
+  maxTokens: z.number().min(16).max(4096).step(1).default(96),
   /** Abort the auxiliary call after this long. */
   timeoutMs: z.number().min(1000).max(60000).step(100).default(8_000),
   /** Minimum gap between two summaries (the time floor). */
@@ -284,7 +284,7 @@ function resolveConfig(raw) {
     provider: AUTO,
     model: AUTO,
     effort: DEFAULTS.effort,
-    maxTokens: Math.round(clamp(merged.maxTokens, 16, 256, DEFAULTS.maxTokens)),
+    maxTokens: Math.round(clamp(merged.maxTokens, 16, 4096, DEFAULTS.maxTokens)),
     timeoutMs: Math.round(clamp(merged.timeoutMs, 1_000, 60_000, DEFAULTS.timeoutMs)),
     minIntervalMs: Math.round(clamp(readRef(merged.minIntervalMs, DEFAULTS.minIntervalMs), 0, 600_000, DEFAULTS.minIntervalMs)),
     minTokens: Math.round(clamp(readRef(merged.minTokens, DEFAULTS.minTokens), 0, 100_000, DEFAULTS.minTokens)),
