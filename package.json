@@ -1,6 +1,6 @@
 {
   "name": "dsh-progress-summary",
-  "version": "0.1.0",
+  "version": "0.1.0-neoiw0.1",
   "description": "Out-of-band progress narration for DeepSeek Harness: a cheap auxiliary model turns live reasoning into one short status line, for the Web UI and dsh-tui",
   "type": "module",
   "main": "index.js",
